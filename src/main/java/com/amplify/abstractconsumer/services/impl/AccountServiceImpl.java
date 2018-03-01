@@ -7,6 +7,7 @@ import com.amplify.abstractconsumer.model.ClaimType;
 import com.amplify.abstractconsumer.model.SocialNetwork;
 import com.amplify.abstractconsumer.services.AccountService;
 import com.amplify.abstractconsumer.todo.TODOClass;
+import java.util.Map;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ public class AccountServiceImpl extends AbstractService implements AccountServic
   RabbitTemplate rabbitTemplate;
 
   @Override
-  public Account getNextValidAccount(SocialNetwork socialNetwork) {
+  public Map<SocialNetwork, Account> getNextValidAccounts() {
     return null;
   }
 

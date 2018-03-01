@@ -7,6 +7,7 @@ import com.amplify.abstractconsumer.model.ClaimType;
 import com.amplify.abstractconsumer.model.SocialNetwork;
 import com.amplify.abstractconsumer.model.UnitOfWork;
 import com.amplify.abstractconsumer.todo.TODOClass;
+import java.util.Map;
 
 /**
  * @author Santiago J. Valls.
@@ -14,16 +15,16 @@ import com.amplify.abstractconsumer.todo.TODOClass;
 public class InitialDiscoveryConsumer extends AbstractConsumer {
 
   @Override
-  public void implementLogic(UnitOfWork unitOfWork, Account account)
+  public void implementLogic(UnitOfWork unitOfWork, Map<SocialNetwork, Account> accounts)
       throws ClaimAccountException {
-    TODOClass.callGoogleAPI(account);
-    if (TODOClass.isAccountDisabled()) {
-      throw new ClaimAccountException(account, ClaimType.DISABLED_ACCOUNT);
+    Account googleAccount = accounts.get(SocialNetwork.GOOGLE);
+    if (googleAccount != null) {
+      TODOClass.callGoogleAPI(accounts.get(SocialNetwork.GOOGLE));
+      if (TODOClass.isAccountDisabled()) {
+        throw new ClaimAccountException(googleAccount, ClaimType.DISABLED_ACCOUNT);
+      }
+    } else {
+      throw new ClaimAccountException(googleAccount, ClaimType.NO_ACCOUNT_PRESENT);
     }
-  }
-
-  @Override
-  public SocialNetwork configureAccountNetwork() {
-    return SocialNetwork.GOOGLE;
   }
 }

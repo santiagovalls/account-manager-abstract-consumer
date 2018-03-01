@@ -3,9 +3,11 @@ package com.amplify.abstractconsumer.consumers;
 import com.amplify.abstractconsumer.exceptions.ClaimAccountException;
 import com.amplify.abstractconsumer.exceptions.ReturnToQueueException;
 import com.amplify.abstractconsumer.model.Account;
+import com.amplify.abstractconsumer.model.ClaimType;
 import com.amplify.abstractconsumer.model.SocialNetwork;
 import com.amplify.abstractconsumer.model.UnitOfWork;
 import com.amplify.abstractconsumer.services.AccountService;
+import java.util.Map;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,29 +26,22 @@ public abstract class AbstractConsumer {
 
   public void consume(UnitOfWork unitOfWork) {
     try {
-      Account account = accountService.getNextValidAccount(configureAccountNetwork());
-      if (account != null) {
-        implementLogic(unitOfWork, account);
-      } else {
-        stopContainer();
-        throw new ReturnToQueueException();
-      }
+      implementLogic(unitOfWork, accountService.getNextValidAccounts());
     } catch (ClaimAccountException e) {
+      if (ClaimType.NO_ACCOUNT_PRESENT.equals(e.getClaimType())) {
+        stopContainer();
+      }
       accountService.claimAccount(e.getAccount(), e.getClaimType());
       throw new ReturnToQueueException();
     }
   }
 
   public void enableAccount(Account account) {
-    if (account.getNetwork().equals(configureAccountNetwork())) {
-      startContainer();
-    }
+    startContainer();
   }
 
-  public abstract void implementLogic(UnitOfWork unitOfWork, Account account)
+  public abstract void implementLogic(UnitOfWork unitOfWork, Map<SocialNetwork, Account> accounts)
       throws ClaimAccountException;
-
-  public abstract SocialNetwork configureAccountNetwork();
 
   private void startContainer() {
     statusContainer.start();
